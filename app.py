@@ -17,10 +17,14 @@ app = Flask(__name__)
 # Twilio credentials
 account_sid = os.getenv('TWILIO_ACCOUNT_SID')
 auth_token = os.getenv('TWILIO_AUTH_TOKEN')
-twilio_client = Client(account_sid, auth_token)
+twilio_client = Client(
+    account_sid, auth_token
+)
 
 # Initialize GPT-4 Mini model
-openai = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+openai = OpenAI(
+    api_key=os.getenv('OPENAI_API_KEY')
+)
 
 # Initialize Langchain conversation
 conversation = ConversationChain(
@@ -35,7 +39,7 @@ def answer_call():
     resp = VoiceResponse()
 
     # Read a message aloud to the caller
-    resp.say("Welcome to the GPT-4 Mini chatbot. What would you like to ask?", voice='alice')
+    resp.say("Welcome to the chatbot. What would you like to ask?", voice='alice')
     
     # Listen for the caller's input
     resp.gather(input='speech', action='/process_speech', method='POST')
