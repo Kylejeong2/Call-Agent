@@ -53,6 +53,7 @@ def process_speech():
     # Create a TwiML response
     resp = VoiceResponse()
     resp.say(response, voice='alice')
+    print(response)
 
     # Ask if the user has another question
     resp.gather(input='speech', action='/process_speech', method='POST')
