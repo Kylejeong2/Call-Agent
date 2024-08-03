@@ -11,6 +11,8 @@ from pipecat.processors.aggregators.llm_response import (
     LLMUserResponseAggregator
 )
 from pipecat.services.openai import OpenAILLMService
+from pipecat.services.anthropic import AnthropicLLMService
+# from groq import GroqLLMService
 from pipecat.services.deepgram import DeepgramSTTService
 from pipecat.services.elevenlabs import ElevenLabsTTSService
 from pipecat.transports.network.fastapi_websocket import FastAPIWebsocketTransport, FastAPIWebsocketParams
@@ -42,7 +44,15 @@ async def run_bot(websocket_client, stream_sid):
 
         llm = OpenAILLMService(
             api_key=os.getenv("OPENAI_API_KEY"),
-            model="gpt-4o")
+            model="gpt-4o-mini")
+
+        # llm = AnthropicLLMService(
+        #     api_key=os.getenv("ANTHROPIC_API_KEY"),
+        #     model="claude-3-opus-20240229"
+        # )
+        # llm = GroqLLMService(
+        #     api_key=os.getenv("GROQ_API_KEY"),
+        #    model="llama3-8b-8192")
 
         stt = DeepgramSTTService(api_key=os.getenv('DEEPGRAM_API_KEY'))
 
@@ -72,7 +82,11 @@ async def run_bot(websocket_client, stream_sid):
             tma_out              # LLM responses
         ])
 
-        task = PipelineTask(pipeline, params=PipelineParams(allow_interruptions=True))
+        task = PipelineTask(pipeline, params=PipelineParams(
+            allow_interruptions=True,
+            enable_metrics=True,
+            report_only_initial_ttfb=True
+        ))
 
         @transport.event_handler("on_client_connected")
         async def on_client_connected(transport, client):

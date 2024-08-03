@@ -12,7 +12,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for testing
+    allow_origins=["*"], # Allow all origins for testing
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -21,7 +21,7 @@ app.add_middleware(
 
 @app.post('/start_call')
 async def start_call():
-    print("POST TwiML")
+    print("Call Started")
     return HTMLResponse(content=open("templates/streams.xml").read(), media_type="application/xml")
 
 
