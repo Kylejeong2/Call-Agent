@@ -12,7 +12,7 @@ from pipecat.processors.aggregators.llm_response import (
 )
 from pipecat.services.openai import OpenAILLMService
 from pipecat.services.anthropic import AnthropicLLMService
-# from groq import GroqLLMService
+from groq_service import GroqLLMService
 from pipecat.services.deepgram import DeepgramSTTService
 from pipecat.services.elevenlabs import ElevenLabsTTSService
 from pipecat.transports.network.fastapi_websocket import FastAPIWebsocketTransport, FastAPIWebsocketParams
@@ -42,17 +42,18 @@ async def run_bot(websocket_client, stream_sid):
             )
         )
 
-        llm = OpenAILLMService(
-            api_key=os.getenv("OPENAI_API_KEY"),
-            model="gpt-4o-mini")
+        # llm = OpenAILLMService(
+        #     api_key=os.getenv("OPENAI_API_KEY"),
+        #     model="gpt-4o-mini")
 
         # llm = AnthropicLLMService(
         #     api_key=os.getenv("ANTHROPIC_API_KEY"),
         #     model="claude-3-opus-20240229"
         # )
-        # llm = GroqLLMService(
-        #     api_key=os.getenv("GROQ_API_KEY"),
-        #    model="llama3-8b-8192")
+
+        llm = GroqLLMService(
+            api_key=os.getenv("GROQ_API_KEY"),
+            model="llama3-8b-8192")
 
         stt = DeepgramSTTService(api_key=os.getenv('DEEPGRAM_API_KEY'))
 
