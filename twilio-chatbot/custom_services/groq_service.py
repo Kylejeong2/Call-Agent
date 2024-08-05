@@ -1,5 +1,6 @@
 # BSD 2-Clause License
 
+# by Kyle Jeong
 import base64
 
 from pipecat.frames.frames import (

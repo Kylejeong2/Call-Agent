@@ -1,6 +1,8 @@
 import aiohttp
 import os
 import sys
+import asyncio
+from asyncio import TimeoutError
 
 from pipecat.frames.frames import EndFrame, LLMMessagesFrame
 from pipecat.pipeline.pipeline import Pipeline
@@ -10,11 +12,14 @@ from pipecat.processors.aggregators.llm_response import (
     LLMAssistantResponseAggregator,
     LLMUserResponseAggregator
 )
-from pipecat.services.openai import OpenAILLMService
-from pipecat.services.anthropic import AnthropicLLMService
-from groq_service import GroqLLMService
-from pipecat.services.deepgram import DeepgramSTTService
-from pipecat.services.elevenlabs import ElevenLabsTTSService
+# from pipecat.services.openai import OpenAILLMService
+# from pipecat.services.anthropic import AnthropicLLMService
+from custom_services.groq_service import GroqLLMService
+# from pipecat.services.deepgram import DeepgramSTTService
+from custom_services.deepgram_service import DeepgramSTTService
+# from pipecat.services.elevenlabs import ElevenLabsTTSService
+# from custom_services.eleven_labs_service import ElevenLabsTTSService
+from custom_services.cartesia_service import CartesiaTTSService
 from pipecat.transports.network.fastapi_websocket import FastAPIWebsocketTransport, FastAPIWebsocketParams
 from pipecat.vad.silero import SileroVADAnalyzer
 from pipecat.serializers.twilio import TwilioFrameSerializer
@@ -28,7 +33,7 @@ logger.remove(0)
 logger.add(sys.stderr, level="DEBUG")
 
 
-async def run_bot(websocket_client, stream_sid):
+async def run_bot(websocket_client, stream_sid, max_duration=300):  # 5 minutes default
     async with aiohttp.ClientSession() as session:
         transport = FastAPIWebsocketTransport(
             websocket=websocket_client,
@@ -53,20 +58,30 @@ async def run_bot(websocket_client, stream_sid):
 
         llm = GroqLLMService(
             api_key=os.getenv("GROQ_API_KEY"),
-            model="llama3-8b-8192")
+            # model="llama3-8b-8192"
+            model="llama-3.1-8b-instant"
+        )
 
         stt = DeepgramSTTService(api_key=os.getenv('DEEPGRAM_API_KEY'))
 
-        tts = ElevenLabsTTSService(
+        # tts = ElevenLabsTTSService(
+        #     aiohttp_session=session,
+        #     api_key=os.getenv("ELEVENLABS_API_KEY"),
+        #     voice_id=os.getenv("ELEVENLABS_VOICE_ID"),
+        # )
+
+        tts = CartesiaTTSService( # cartesia has a super fast processing time <0.0003s 
             aiohttp_session=session,
-            api_key=os.getenv("ELEVENLABS_API_KEY"),
-            voice_id=os.getenv("ELEVENLABS_VOICE_ID"),
+            api_key=os.getenv('CARTESIA_API_KEY'),
+            voice_id=os.getenv('CARTESIA_VOICE_ID')
         )
 
         messages = [
             {
                 "role": "system",
-                "content": "You are a helpful LLM in an audio call. Your goal is to demonstrate your capabilities in a succinct way. Your output will be converted to audio so don't include special characters in your answers. Respond to what the user said in a creative and helpful way.",
+                "content": """ 
+                    You are a helpful LLM in an audio call. Your goal is to demonstrate your capabilities in a succinct way. Your output will be converted to audio so don't include special characters in your answers. Respond to what the user said in a creative and helpful way.Try to keep responses under 3 sentences. If the user says 'bye', end the call. Your official name is Emily.
+                """,
             },
         ]
 
@@ -102,4 +117,10 @@ async def run_bot(websocket_client, stream_sid):
 
         runner = PipelineRunner(handle_sigint=False)
 
-        await runner.run(task)
+        try:
+            await asyncio.wait_for(runner.run(task), timeout=max_duration)
+        except TimeoutError:
+            logger.info(f"Call duration exceeded {max_duration} seconds. Ending call.")
+        finally:
+            await task.queue_frames([EndFrame()])
+            # end the call
