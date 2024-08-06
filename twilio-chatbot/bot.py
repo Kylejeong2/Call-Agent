@@ -4,7 +4,7 @@ import sys
 import asyncio
 from asyncio import TimeoutError
 
-from pipecat.frames.frames import EndFrame, LLMMessagesFrame
+from pipecat.frames.frames import EndFrame, LLMMessagesFrame, StartInterruptionFrame
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.runner import PipelineRunner
 from pipecat.pipeline.task import PipelineParams, PipelineTask
@@ -20,7 +20,8 @@ from custom_services.deepgram_service import DeepgramSTTService
 # from pipecat.services.elevenlabs import ElevenLabsTTSService
 # from custom_services.eleven_labs_service import ElevenLabsTTSService
 from custom_services.cartesia_service import CartesiaTTSService
-from pipecat.transports.network.fastapi_websocket import FastAPIWebsocketTransport, FastAPIWebsocketParams
+# from pipecat.transports.network.fastapi_websocket import FastAPIWebsocketTransport, FastAPIWebsocketParams
+from custom_services.fastapi_websocket import FastAPIWebsocketTransport, FastAPIWebsocketParams
 from pipecat.vad.silero import SileroVADAnalyzer
 from pipecat.serializers.twilio import TwilioFrameSerializer
 
@@ -32,8 +33,7 @@ load_dotenv(override=True)
 logger.remove(0)
 logger.add(sys.stderr, level="DEBUG")
 
-
-async def run_bot(websocket_client, stream_sid, max_duration=300):  # 5 minutes default
+async def run_bot(websocket_client, stream_sid): 
     async with aiohttp.ClientSession() as session:
         transport = FastAPIWebsocketTransport(
             websocket=websocket_client,
@@ -94,15 +94,12 @@ async def run_bot(websocket_client, stream_sid, max_duration=300):  # 5 minutes 
             tma_in,              # User responses
             llm,                 # LLM
             tts,                 # Text-To-Speech
-            transport.output(),  # Websocket output to client
-            tma_out              # LLM responses
+            tma_out,             # LLM responses
+            transport.output()   # Websocket output to client
         ])
 
         task = PipelineTask(pipeline, params=PipelineParams(
-            allow_interruptions=True,
-            enable_metrics=True,
-            report_only_initial_ttfb=True
-        ))
+            allow_interruptions=True, enable_metrics=True))
 
         @transport.event_handler("on_client_connected")
         async def on_client_connected(transport, client):
@@ -117,10 +114,4 @@ async def run_bot(websocket_client, stream_sid, max_duration=300):  # 5 minutes 
 
         runner = PipelineRunner(handle_sigint=False)
 
-        try:
-            await asyncio.wait_for(runner.run(task), timeout=max_duration)
-        except TimeoutError:
-            logger.info(f"Call duration exceeded {max_duration} seconds. Ending call.")
-        finally:
-            await task.queue_frames([EndFrame()])
-            # end the call
+        await runner.run(task)

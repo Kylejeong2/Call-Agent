@@ -24,7 +24,6 @@ async def start_call():
     print("Call Started")
     return HTMLResponse(content=open("templates/streams.xml").read(), media_type="application/xml")
 
-
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
@@ -35,7 +34,6 @@ async def websocket_endpoint(websocket: WebSocket):
     stream_sid = call_data['start']['streamSid']
     print("WebSocket connection accepted")
     await run_bot(websocket, stream_sid)
-
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8765)

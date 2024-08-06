@@ -58,7 +58,6 @@ class CartesiaTTSService(TTSService):
         # a full sentence should only "cost" us 15ms or so with GPT-4o or a Llama 3
         # model, and it's worth it for the better audio quality.
         self._aggregate_sentences = True
-
         # we don't want to automatically push LLM response text frames, because the
         # context aggregators will add them to the LLM context even if we're
         # interrupted. cartesia gives us word-by-word timestamps. we can use those
@@ -212,7 +211,7 @@ class CartesiaTTSService(TTSService):
                 "output_format": self._output_format,
                 "language": self._language,
                 "add_timestamps": True,
-                "speaking_rate": 1.3
+                "speaking_rate": 1.2
             }
             # logger.debug(f"SENDING MESSAGE {json.dumps(msg)}")
             try:
