@@ -11,7 +11,6 @@ from typing import AsyncGenerator
 
 from pipecat.frames.frames import AudioRawFrame, ErrorFrame, Frame
 from pipecat.services.ai_services import TTSService
-from elevenlabs import VoiceSettings
 
 from loguru import logger
 
@@ -44,9 +43,7 @@ class ElevenLabsTTSService(TTSService):
 
         url = f"https://api.elevenlabs.io/v1/text-to-speech/{self._voice_id}/stream"
 
-        settings = VoiceSettings(speaking_rate=1.3)  # 30% faster than normal
-
-        payload = {"text": text, "model_id": self._model, "settings": settings}
+        payload = {"text": text, "model_id": self._model}
 
         querystring = {
             "output_format": "pcm_16000",

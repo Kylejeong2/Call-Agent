@@ -211,7 +211,7 @@ class CartesiaTTSService(TTSService):
                 "output_format": self._output_format,
                 "language": self._language,
                 "add_timestamps": True,
-                "speaking_rate": 1.2
+                "speaking_rate": 1.1
             }
             # logger.debug(f"SENDING MESSAGE {json.dumps(msg)}")
             try:
