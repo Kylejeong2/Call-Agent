@@ -1,12 +1,3 @@
-"""
-bot_runner.py
-
-HTTP service that listens for incoming calls from either Daily or Twilio,
-provisioning a room and starting a Pipecat bot in response.
-
-Refer to README for more information.
-"""
-
 import aiohttp
 import os
 import argparse
@@ -61,16 +52,6 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-"""
-Create Daily room, tell the bot if the room is created for Twilio's SIP or Daily's SIP (vendor).
-When the vendor is Daily, the bot handles the call forwarding automatically,
-i.e, forwards the call from the "hold music state" to the Daily Room's SIP URI.
-
-Alternatively, when the vendor is Twilio (not Daily), the bot is responsible for
-updating the state on Twilio. So when `dialin-ready` fires, it takes appropriate
-action using the Twilio Client library.
-"""
-
 async def _create_daily_room(room_url, callId, callDomain=None, vendor="daily"):
     if not room_url:
         params = DailyRoomParams(
@@ -107,9 +88,11 @@ async def _create_daily_room(room_url, callId, callDomain=None, vendor="daily"):
     # Spawn a new agent, and join the user session
     # Note: this is mostly for demonstration purposes (refer to 'deployment' in docs)
     if vendor == "daily":
+        print("Starting bot for Daily...")
         bot_proc = f"python3 -m bot_daily -u {room.url} -t {token} -i {callId} -d {callDomain}"
     else:
-        bot_proc = f"python3 -m bot_twilio -u {room.url} -t {token} -i {callId} -s sip:voice-cloner@sip.daily.co"
+        print("Starting bot for Twilio...")
+        bot_proc = f"python3 -m bot_twilio -u {room.url} -t {token} -i {callId} -s {room.config.sip_endpoint}" # call-agent.sip.twilio.com voice-cloner.sip.daily.co
     try:
         subprocess.Popen( 
             [bot_proc],
@@ -127,11 +110,6 @@ async def _create_daily_room(room_url, callId, callDomain=None, vendor="daily"):
 async def twilio_start_bot(request: Request):
     print(f"POST /twilio_voice_bot")
 
-    # twilio_start_bot is invoked directly by Twilio (as a web hook).
-    # On Twilio, under Active Numbers, pick the phone number
-    # Click Configure and under Voice Configuration,
-    # "a call comes in" choose webhook and point the URL to
-    # where this code is hosted.
     form_data = await request.body()
     # print(f"Request body: {form_data}")
     
@@ -159,45 +137,45 @@ async def twilio_start_bot(request: Request):
     # put the call on hold until the 'on_dialin_ready' fires.
     # Then, the bot will update the called sid with the sip uri.
     # http://com.twilio.music.classical.s3.amazonaws.com/BusyStrings.mp3
+
     resp = VoiceResponse()
     resp.play(
         url="http://com.twilio.sounds.music.s3.amazonaws.com/MARKOVICHAMP-Borghestral.mp3", loop=10)
     return str(resp)
 
 
-# @app.post("/daily_start_bot")
-# async def daily_start_bot(request: Request) -> JSONResponse:
-#     # The /daily_start_bot is invoked when a call is received on Daily's SIP URI
-#     # daily_start_bot will create the room, put the call on hold until
-#     # the bot and sip worker are ready. Daily will automatically
-#     # forward the call to the SIP URi when dialin_ready fires.
+@app.post("/daily_start_bot")
+async def daily_start_bot(request: Request) -> JSONResponse:
+    # The /daily_start_bot is invoked when a call is received on Daily's SIP URI
+    # daily_start_bot will create the room, put the call on hold until
+    # the bot and sip worker are ready. Daily will automatically
+    # forward the call to the SIP URi when dialin_ready fires.
 
-#     # Use specified room URL, or create a new one if not specified
-#     room_url = os.getenv("DAILY_SAMPLE_ROOM_URL", None)
-#     # Get the dial-in properties from the request
-#     try:
-#         data = await request.json()
-#         if "test" in data:
-#             # Pass through any webhook checks
-#             return JSONResponse({"test": True})
-#         callId = data.get("callId", None)
-#         callDomain = data.get("callDomain", None)
-#     except Exception:
-#         raise HTTPException(
-#             status_code=500,
-#             detail="Missing properties 'callId' or 'callDomain'")
+    # Use specified room URL, or create a new one if not specified
+    room_url = os.getenv("DAILY_SAMPLE_ROOM_URL", None)
+    # Get the dial-in properties from the request
+    try:
+        data = await request.json()
+        if "test" in data:
+            # Pass through any webhook checks
+            return JSONResponse({"test": True})
+        callId = data.get("callId", None)
+        callDomain = data.get("callDomain", None)
+    except Exception:
+        raise HTTPException(
+            status_code=500,
+            detail="Missing properties 'callId' or 'callDomain'")
 
-#     print(f"CallId: {callId}, CallDomain: {callDomain}")
-#     room: DailyRoomObject = await _create_daily_room(room_url, callId, callDomain, "daily")
+    print(f"CallId: {callId}, CallDomain: {callDomain}")
+    room: DailyRoomObject = await _create_daily_room(room_url, callId, callDomain, "daily")
 
-#     # Grab a token for the user to join with
-#     return JSONResponse({
-#         "room_url": room.url,
-#         "sipUri": room.config.sip_endpoint
-#     })
+    # Grab a token for the user to join with
+    return JSONResponse({
+        "room_url": room.url,
+        "sipUri": room.config.sip_endpoint
+    })
 
 # ----------------- Main ----------------- #
-
 
 if __name__ == "__main__":
     # Check environment variables
@@ -209,7 +187,7 @@ if __name__ == "__main__":
     parser.add_argument("--host", type=str,
                         default=os.getenv("HOST", "0.0.0.0"), help="Host address")
     parser.add_argument("--port", type=int,
-                        default=os.getenv("PORT", 7860), help="Port number")
+                        default=os.getenv("PORT", 8765), help="Port number")
     parser.add_argument("--reload", action="store_true",
                         default=True, help="Reload code on change")
 

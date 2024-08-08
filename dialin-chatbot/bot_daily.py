@@ -12,8 +12,10 @@ from pipecat.frames.frames import (
     LLMMessagesFrame,
     EndFrame
 )
-from pipecat.services.elevenlabs import ElevenLabsTTSService
-from pipecat.services.openai import OpenAILLMService
+# from pipecat.services.elevenlabs import ElevenLabsTTSService
+# from pipecat.services.openai import OpenAILLMService
+from custom_services.eleven_labs_service import ElevenLabsTTSService
+from custom_services.groq_service import GroqLLMService
 from pipecat.transports.services.daily import DailyParams, DailyTransport, DailyDialinSettings
 from pipecat.vad.silero import SileroVADAnalyzer
 from loguru import logger
@@ -61,9 +63,13 @@ async def main(room_url: str, token: str, callId: str, callDomain: str):
             voice_id=os.getenv("ELEVENLABS_VOICE_ID", ""),
         )
 
-        llm = OpenAILLMService(
-            api_key=os.getenv("OPENAI_API_KEY"),
-            model="gpt-4o-mini")
+        # llm = OpenAILLMService(
+        #     api_key=os.getenv("OPENAI_API_KEY"),
+        #     model="gpt-4o-mini")
+        llm = GroqLLMService(
+            api_key=os.getenv("GROQ_API_KEY"),
+            model="llama-3.1-8b-instant"
+        )
 
         messages = [
             {
@@ -84,7 +90,7 @@ async def main(room_url: str, token: str, callId: str, callDomain: str):
             tma_out,
         ])
 
-        task = PipelineTask(pipeline, PipelineParams(allow_interruptions=True))
+        task = PipelineTask(pipeline, PipelineParams(allow_interruptions=True, enable_metrics=True))
 
         @transport.event_handler("on_first_participant_joined")
         async def on_first_participant_joined(transport, participant):
