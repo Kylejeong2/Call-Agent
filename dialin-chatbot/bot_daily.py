@@ -66,6 +66,7 @@ async def main(room_url: str, token: str, callId: str, callDomain: str):
         # llm = OpenAILLMService(
         #     api_key=os.getenv("OPENAI_API_KEY"),
         #     model="gpt-4o-mini")
+        
         llm = GroqLLMService(
             api_key=os.getenv("GROQ_API_KEY"),
             model="llama-3.1-8b-instant"

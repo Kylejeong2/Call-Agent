@@ -31,7 +31,7 @@ class GroqLLMService(LLMService):
             self,
             *,
             api_key: str,
-            model: str = "llama3-8b-8192",
+            model: str = "llama3.1-8b-instant",
             max_tokens: int = 1024):
         super().__init__()
         self._client = AsyncGroq(api_key=api_key)

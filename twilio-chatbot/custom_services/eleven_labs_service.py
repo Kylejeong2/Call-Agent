@@ -54,8 +54,6 @@ class ElevenLabsTTSService(TTSService):
             "Content-Type": "application/json",
         }
 
-        # settings = VoiceSettings(speaking_rate=1.2)  # 20% faster than normal
-
         await self.start_ttfb_metrics()
 
         async with self._aiohttp_session.post(url, json=payload, headers=headers, params=querystring) as r:

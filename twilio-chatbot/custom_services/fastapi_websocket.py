@@ -12,13 +12,16 @@ import wave
 from typing import Awaitable, Callable
 from pydantic.main import BaseModel
 
-from pipecat.frames.frames import AudioRawFrame, StartFrame
-# from pipecat.processors.frame_processor import FrameProcessor
-from custom_processor.frame_processor import FrameProcessor
+from pipecat.processors.frame_processor import FrameProcessor
 from pipecat.serializers.base_serializer import FrameSerializer
 from pipecat.transports.base_input import BaseInputTransport
 from pipecat.transports.base_output import BaseOutputTransport
 from pipecat.transports.base_transport import BaseTransport, TransportParams
+from pipecat.frames.frames import (
+    AudioRawFrame,
+    StartFrame,
+    StartInterruptionFrame,
+    StopInterruptionFrame)
 
 from loguru import logger
 
@@ -37,11 +40,9 @@ class FastAPIWebsocketParams(TransportParams):
     audio_frame_size: int = 6400  # 200ms
     serializer: FrameSerializer
 
-
 class FastAPIWebsocketCallbacks(BaseModel):
     on_client_connected: Callable[[WebSocket], Awaitable[None]]
     on_client_disconnected: Callable[[WebSocket], Awaitable[None]]
-
 
 class FastAPIWebsocketInputTransport(BaseInputTransport):
 
@@ -81,10 +82,8 @@ class FastAPIWebsocketInputTransport(BaseInputTransport):
 
 
 class FastAPIWebsocketOutputTransport(BaseOutputTransport):
-
     def __init__(self, websocket: WebSocket, params: FastAPIWebsocketParams, **kwargs):
         super().__init__(params, **kwargs)
-
         self._websocket = websocket
         self._params = params
         self._audio_buffer = bytes()
@@ -119,9 +118,7 @@ class FastAPIWebsocketOutputTransport(BaseOutputTransport):
 
             self._audio_buffer = self._audio_buffer[self._params.audio_frame_size:]
 
-
 class FastAPIWebsocketTransport(BaseTransport):
-
     def __init__(
             self,
             websocket: WebSocket,
@@ -134,7 +131,7 @@ class FastAPIWebsocketTransport(BaseTransport):
 
         self._callbacks = FastAPIWebsocketCallbacks(
             on_client_connected=self._on_client_connected,
-            on_client_disconnected=self._on_client_disconnected
+            on_client_disconnected=self._on_client_disconnected,
         )
 
         self._input = FastAPIWebsocketInputTransport(
