@@ -4,6 +4,8 @@
 # SPDX-License-Identifier: BSD 2-Clause License
 #
 
+# Edited by Kyle Jeong
+
 import aiohttp
 import time
 

@@ -1,6 +1,10 @@
-# BSD 2-Clause License
+#
+# Copyright (c) 2024, Daily
+#
+# SPDX-License-Identifier: BSD 2-Clause License
+#
 
-# by Kyle Jeong
+# Edited by Kyle Jeong
 import base64
 
 from pipecat.frames.frames import (

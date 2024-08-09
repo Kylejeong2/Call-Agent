@@ -1,9 +1,15 @@
-import aiohttp
+# Standard library imports
 import os
 import sys
 import asyncio
 from asyncio import TimeoutError
 
+# Third-party imports
+import aiohttp
+from dotenv import load_dotenv
+from loguru import logger
+
+# Pipecat core imports
 from pipecat.frames.frames import EndFrame, LLMMessagesFrame
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.runner import PipelineRunner
@@ -12,22 +18,22 @@ from pipecat.processors.aggregators.llm_response import (
     LLMAssistantResponseAggregator,
     LLMUserResponseAggregator
 )
-from pipecat.services.openai import OpenAILLMService
-# from pipecat.services.anthropic import AnthropicLLMService
+from pipecat.serializers.twilio import TwilioFrameSerializer
+from pipecat.transports.network.fastapi_websocket import FastAPIWebsocketTransport, FastAPIWebsocketParams
+from pipecat.vad.silero import SileroVADAnalyzer
+
+# Custom service imports
 from custom_services.groq_service import GroqLLMService
-# from pipecat.services.deepgram import DeepgramSTTService
 from custom_services.deepgram_service import DeepgramSTTService
+from custom_services.cartesia_service import CartesiaTTSService
+
+# from pipecat.services.openai import OpenAILLMService
+# from pipecat.services.anthropic import AnthropicLLMService
+# from pipecat.services.deepgram import DeepgramSTTService
 # from pipecat.services.elevenlabs import ElevenLabsTTSService
 # from custom_services.eleven_labs_service import ElevenLabsTTSService
-from custom_services.cartesia_service import CartesiaTTSService
-from pipecat.transports.network.fastapi_websocket import FastAPIWebsocketTransport, FastAPIWebsocketParams
 # from custom_services.fastapi_websocket import FastAPIWebsocketTransport, FastAPIWebsocketParams
-from pipecat.vad.silero import SileroVADAnalyzer
-from pipecat.serializers.twilio import TwilioFrameSerializer
 
-from loguru import logger
-
-from dotenv import load_dotenv
 load_dotenv(override=True)
 
 logger.remove(0)
