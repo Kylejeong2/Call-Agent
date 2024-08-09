@@ -1,8 +1,8 @@
-<div align="center">
- <img alt="pipecat" width="300px" height="auto" src="image.png">
-</div>
+# Dialin example (Daily + Twilio)
 
-# Dialin example
+### IMPORTANT: (Note from Kyle)
+
+I only made a few adjustments to make this run on my machine. Also added custom services here so you can use Groq and stuff. 
 
 Example project that demonstrates how to add phone number dialin to your Pipecat bots. We include examples for both Daily (`bot_daily.py`) and Twilio (`bot_twilio.py`), depending on who you want to use as a phone vendor.
 
@@ -20,6 +20,12 @@ If you already have Twilio numbers and workflows that you want to connect to you
 You can read more about this, as well as see respective walkthroughs in our docs.
 
 ## Setup
+
+## IMPORTANT: (Note from Kyle)
+
+For this to work, you need to allow dailin on your room using the Daily RestAPI.
+Here's how to do so:
+https://docs.daily.co/guides/products/dial-in-dial-out/sip
 
 ```shell
 # Install the requirements
@@ -41,12 +47,23 @@ Then target the following URL:
 
 For more configuration options, please consult Daily's API documentation.
 
+## IMPORTANT: (Note from Kyle)
+
+If you want to use Daily you HAVE to allow the phone number that you purchase to have dailin enabled.
+
+How to get a number:
+https://docs.daily.co/reference/rest-api/phone-numbers
+
+How to enable dailin:
+https://docs.daily.co/guides/products/dial-in-dial-out/dialin-pinless
 
 ## Using Twilio numbers
 
 As above, but target the following URL:
 
 `POST /twilio_start_bot`
+
+* YOU NEED TO SET UP THE WEBHOOKS IN TWILIO TO POINT TO YOUR APP * 
 
 For more configuration options, please consult Twilio's API documentation.
 

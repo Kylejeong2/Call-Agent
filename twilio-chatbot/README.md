@@ -1,5 +1,10 @@
 # Twilio Chatbot
 
+### Note from Kyle
+
+I used a template from Pipecat to get this started. I edited some of the LLM services to get some faster responses + different apis (like groq). Overall this was a good start to learn Pipecat and how the audio frames and stuff works, but the interruption stuff is just terrible with it. I spent probably 25 total hours tinkering with all the TTS stuff and transport stuff but couldn't figure it out. If you're a genius you could probably do it, but I gave up. 
+_____________________________
+
 This project is a FastAPI-based chatbot that integrates with Twilio to handle WebSocket connections and provide real-time communication. The project includes endpoints for starting a call and handling WebSocket connections.
 
 ## Table of Contents
@@ -20,7 +25,7 @@ This project is a FastAPI-based chatbot that integrates with Twilio to handle We
 
 ## Requirements
 
-- Python 3.10
+- Python 3.10 (YOU NEED THIS)
 - Docker (for containerized deployment)
 - ngrok (for tunneling)
 - Twilio Account
@@ -51,6 +56,7 @@ This project is a FastAPI-based chatbot that integrates with Twilio to handle We
 
 2. **Update the streams.xml**:
     Copy the ngrok URL and update templates/streams.xml with `wss://<ngrok_url>/ws`.
+    * this is super important, you need to reset it everytime you restart ngrok
 
 ## Running the Application
 
@@ -67,6 +73,8 @@ This project is a FastAPI-based chatbot that integrates with Twilio to handle We
     ngrok http 8765
     ```
 ### Using Docker
+
+* i never used the docker container, but it should work
 
 1. **Build the Docker image**:
     ```sh

@@ -1,3 +1,4 @@
 .env
 /venv
 /twilio-chatbot/venv
+/retell-ai-phone-agent/venv
