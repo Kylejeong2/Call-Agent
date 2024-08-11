@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
-
 # This is basically the built in example of Dental Office from Retell AI. 
 
 # Uncomment the code below as you see fit to create your phone agent. Technically you could use the dashboard for this or also the Rest API, 
